@@ -1,5 +1,6 @@
 .DS_Store
 */.DS_Store
-/data
-/results
+/data/*
+/results/*
 /__pycache__
+testarea.ipynb
