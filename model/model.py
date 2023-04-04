@@ -30,11 +30,11 @@ class MultistainModel(nn.Module):
         B,n_mod,C,H,W = imgs.size()
         
         imgs = imgs.split(1,dim=1)
-        
-        features = torch.empty((B,n_mod,self.d_model))
+        features = []
         for idx,img in enumerate(imgs):
-            features[:,idx,:] = self.feat_extractors[idx](img[:,0,:,:,:])
-        
+            #features[:,idx,:] = self.feat_extractors[idx](img[:,0,:,:,:])
+            features.append(self.feat_extractors[idx](img[:,0,:,:,:]))
+        features = torch.stack(features,dim = 1 )
         features = self.transformer_encoder(features)
         features = self.globalpooling(features)
         features = self.linear_out(features) 
