@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc,activate):
+def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc,activate,unfreeze):
     for epoch in range(n_epochs):
         model.train()
         train_loss = []
@@ -8,6 +8,12 @@ def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,
         with tqdm(train_loader, unit="batch") as tepoch:
             for idx,(x, y) in enumerate(tepoch):
                 tepoch.set_description(f"Epoch {epoch+1}|Train")
+
+                if unfreeze==idx:
+                    for param in model.parameters():
+                        param.requires_grad = True
+                    print("Unfreeze feature extractors\n")
+
                 x = x.to(device)
                 y = y.to(device)
                 pred = model(x)

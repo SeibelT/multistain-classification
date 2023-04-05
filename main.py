@@ -22,7 +22,7 @@ n_mods = 3
 n_epochs = 2
 train_bs = 64
 n_classes = 2 #TODO still hardcoded for 2 only 
-
+unfreeze_epoch = 0
 try:
   os.mkdir(filepath)
 except FileExistsError:
@@ -63,7 +63,7 @@ inputs = inputs.to(device).float()
 writer.add_graph(model, inputs)
 
 ##Train Model
-model,optimizer,epoch = trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc=auroc,activate=activate)
+model,optimizer,epoch = trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc=auroc,activate=activate,unfreeze=unfreeze_epoch)
 
 
 writer.close()
