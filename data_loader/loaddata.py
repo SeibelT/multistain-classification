@@ -7,6 +7,7 @@ import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 
+
 class MultiModalLoader(Dataset):
     def __init__(self, df_path, traintest,n_mods,transform = True,shuffle = True):
         # TODO transformation 
@@ -47,6 +48,7 @@ class MultiModalLoader(Dataset):
         # Return the length of your data
         return len(self.df)
 
+
     def __getitem__(self, idx):
         label = self.df.iloc[idx,1 ]
         label = self.l_enc.transform([label])
@@ -64,6 +66,12 @@ class MultiModalLoader(Dataset):
             x = self.l_enc.inverse_transform(x[0])
             out.append(x.item())
         return out 
+    
+    def __getweights__(self):
+        array = self.l_enc.classes_
+        diction = self.df["Label"].value_counts().to_dict()
+        weights = torch.tensor([diction[i] for i in array])
+        return weights/sum(weights)
 
 def uni_traintest_df(slidename,clininame,blocks,trainsplit,label="isMSIH"):
    """returns train and test dataframes stratified by patient IDs

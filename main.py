@@ -14,20 +14,23 @@ from eval.evaluate import evaluation
 
 from torch.utils.tensorboard import SummaryWriter
 
+#Variables 
 expname = "/ex1"
-
 table_path = "data/datatable.csv"
-filepath= "results"+expname
 n_mods = 3
 n_epochs = 2
 train_bs = 64
 n_classes = 2 #TODO still hardcoded for 2 only 
 unfreeze_epoch = 0
+weighted = True 
+###
+
+filepath= "results"+expname
 try:
   os.mkdir(filepath)
 except FileExistsError:
   print("Path already exists")
-  sys.exit()
+  #sys.exit()
 
 
 
@@ -51,7 +54,12 @@ model = MultistainModel(n_classes = n_classes)
 model.to(device)
 
 #model = torch.compile(premodel)  # TODO not working yet 
-criterion = nn.CrossEntropyLoss()  
+
+if weighted:
+  criterion = nn.CrossEntropyLoss(weight=train_DS.__getweights__())
+else:
+  criterion = nn.CrossEntropyLoss()  
+
 optimizer = optim.Adam(model.parameters(), lr=0.001)  # TODO optimal optimizer for this task?
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)  # TODO optimal scheduler? 
 auroc = AUROC(task="multilabel", num_labels=2)  # TODO do for categorical

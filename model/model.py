@@ -14,7 +14,7 @@ class MultistainModel(nn.Module):
         if pretrained_models == None: 
             for i in range(n_mods):
                 model =  models.resnet18(pretrained=False)
-                model = nn.Sequential(model,nn.Linear(1000,self.d_model))
+                model.fc.out_features = self.d_model
                 self.feat_extractors.append(model)
         else:
             for i in range(n_mods):
