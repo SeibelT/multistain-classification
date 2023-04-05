@@ -56,8 +56,8 @@ def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,
                 valid_auroc.append(val_auroc)
                 vepoch.set_postfix(valid_loss=loss.item(), valid_AUROC=val_auroc.item())
 
-                writer.add_scalar('validation_loss', loss.item(), global_step=idx)
-                writer.add_scalar('validation_auroc', val_auroc.item(), global_step=idx)
+                writer.add_scalar('validation_loss', loss.item(), global_step=epoch * len(valid_loader) + idx)
+                writer.add_scalar('validation_auroc', val_auroc.item(), global_step=epoch * len(valid_loader) + idx)
 
 
                 if idx>0: # TODO get rid of before running 

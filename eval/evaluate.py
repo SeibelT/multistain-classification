@@ -21,7 +21,7 @@ def evaluation(model,test_loader,device,criterion,auroc,activate):
             test_loss.append(loss.item())
             test_aurocs.append(test_auroc.item())
             testepoch.set_postfix(test_loss=loss.item(), test_AUROC=test_auroc.item())
-
+            
 
             if idx>0: # TODO get rid of before running 
                 break
