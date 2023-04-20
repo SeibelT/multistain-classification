@@ -71,11 +71,12 @@ inputs = inputs.to(device).float()
 writer.add_graph(model, inputs)
 
 ##Train Model
-model,optimizer,epoch = trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc=auroc,activate=activate,unfreeze=unfreeze_epoch)
+model,optimizer,epoch = trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc=auroc,activate=activate,unfreeze=unfreeze_epoch,checkpoint_path = filepath)
 
 
 writer.close()
 
+##Final saving of weights 
 state = {
     'epoch': epoch,
     'state_dict': model.state_dict(),
@@ -88,7 +89,7 @@ torch.save(state, filepath+"/model.pt")
 ##Evaluation
 results = evaluation(model,test_loader,device,criterion,auroc,activate)
 
-results_df = pd.DataFrame(results,columns=["cls1_label","cls2_label","cls1_label","cls2_pred"])  # hardcoded for 2 classes only
+results_df = pd.DataFrame(results,columns=["cls1_label","cls2_label","cls1_label","cls2_pred"])  # TODO hardcoded for 2 classes only
         
 
 f = results_df.to_csv((filepath+"/result_table.csv"),index=False)

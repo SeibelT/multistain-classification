@@ -1,6 +1,8 @@
 from tqdm import tqdm
+import numpy as np
+import torch
 
-def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc,activate,unfreeze):
+def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,optimizer,writer,auroc,activate,unfreeze,epoch_checkpoint=50,checkpoint_path="results/"):
     for epoch in range(n_epochs):
         model.train()
         train_loss = []
@@ -32,10 +34,19 @@ def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,
 
                 for name, param in model.named_parameters():
                     writer.add_histogram(name, param, global_step=epoch * len(train_loader) + idx)
+
+                
                 if idx>0:  # get rid of before running 
                     break
-        #mean_train_loss = np.mean(train_loss)  
-        #mean_train_auroc = np.mean(train_auroc) 
+        if epoch%epoch_checkpoint==0:
+            """store checkpoints every epoch_checkpoint """
+            path = checkpoint_path + f"/model_at_ep{epoch}.pt"
+            torch.save({
+            'epoch': epoch,
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'epoch_mean_loss': np.mean(train_loss),
+            }, path)
 
         scheduler.step()
         valid_loss = []
@@ -63,8 +74,9 @@ def trainer(model,n_epochs,train_loader,valid_loader,scheduler,device,criterion,
                 if idx>0: # TODO get rid of before running 
                     break
 
-        #mean_valid_loss = np.mean(valid_loss)  
-        #mean_valid_auroc = np.mean(valid_auroc) 
+        
+        
+
     return model,optimizer,epoch
 
 

@@ -42,7 +42,7 @@ class MultiModalLoader(Dataset):
             transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
             transforms.ColorJitter(),
-            transforms.RandomRotation(degrees=180),
+            transforms.RandomRotation(degrees=360),
                                  ])
     def __len__(self):
         # Return the length of your data
