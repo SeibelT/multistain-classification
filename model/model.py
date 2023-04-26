@@ -11,10 +11,10 @@ class MultistainModel(nn.Module):
         self.n_classes = n_classes
         
             
-        if pretrained_models == None: 
+        if pretrained_models is None: 
             for i in range(n_mods):
                 model =  models.resnet18(pretrained=False)
-                model.fc.out_features = self.d_model
+                model.fc = nn.Linear(model.fc.in_features, self.d_model)
                 self.feat_extractors.append(model)
         else:
             for i in range(n_mods):

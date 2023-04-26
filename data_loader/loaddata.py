@@ -6,16 +6,20 @@ import pandas as pd
 import os 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-
+from zipfile import ZipFile
+import io
 
 class MultiModalLoader(Dataset):
-    def __init__(self, df_path, traintest,n_mods,transform = True,shuffle = True):
-        # TODO transformation 
+    def __init__(self, df_path, traintest,n_mods,transform = True,shuffle = True,zip_path=None):
+        
+        self.zip_path = zip_path
+
         if shuffle:
             df = pd.read_csv(df_path).sample(frac=1, random_state = 1) # TODO frac=0.3 -> =1
         else:
             df = pd.read_csv(df_path)
 
+        
         # Encode Categories
         self.l_enc = LabelEncoder()
         self.enc = OneHotEncoder()
@@ -34,7 +38,7 @@ class MultiModalLoader(Dataset):
         
 
         
-
+        self.transform = None 
         if transform:
             self.transform = transforms.Compose([
             transforms.Resize((224, 224)),
@@ -44,6 +48,12 @@ class MultiModalLoader(Dataset):
             transforms.ColorJitter(),
             transforms.RandomRotation(degrees=360),
                                  ])
+        
+        
+        
+
+        
+
     def __len__(self):
         # Return the length of your data
         return len(self.df)
@@ -54,8 +64,31 @@ class MultiModalLoader(Dataset):
         label = self.l_enc.transform([label])
         label = self.enc.transform([label]).toarray()
         fpaths = self.df.iloc[idx,-self.n_mods:]
-        
-        imgs = [self.transform(Image.open(fpath)) for fpath in fpaths ]
+
+        if self.zip_path is not None:
+            imgs = []
+            
+            if self.transform is not None:
+                with ZipFile(self.zip_path, 'r') as zip_ref:
+                    for file_path in fpaths:
+                        with zip_ref.open(file_path) as file:
+                            image = file.read()
+                            image = self.transform(Image.open(io.BytesIO(image)))
+                            imgs.append(image)
+
+            else: 
+                with ZipFile(self.zip_path, 'r') as zip_ref:
+                    for file_path in fpaths:
+                        with zip_ref.open(file_path) as file:
+                            image = file.read()
+                            imgs.append(Image.open(io.BytesIO(image)))
+                
+        else:
+            if self.transform is not None:
+                imgs = [self.transform(Image.open(fpath)) for fpath in fpaths ]
+            else:
+                imgs = [Image.open(fpath) for fpath in fpaths ]
+
 
         return torch.stack(imgs),torch.tensor(label).squeeze()
 
@@ -72,6 +105,12 @@ class MultiModalLoader(Dataset):
         diction = self.df["Label"].value_counts().to_dict()
         weights = torch.tensor([diction[i] for i in array])
         return weights/sum(weights)
+
+
+
+
+
+
 
 def uni_traintest_df(slidename,clininame,blocks,trainsplit,label="isMSIH"):
    """returns train and test dataframes stratified by patient IDs
