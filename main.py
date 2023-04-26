@@ -2,6 +2,7 @@ import os
 import sys
 import torch 
 import pandas as pd
+import time 
 from torch import nn
 from torch import optim
 from torchmetrics import AUROC
@@ -13,19 +14,21 @@ from trainer.train import trainer
 from eval.evaluate import evaluation
 
 from torch.utils.tensorboard import SummaryWriter
-
+start = time.time()
 #Variables 
 expname = "/ex1"
-table_path = "data/datatable.csv"
+table_path = "./data/datatable.csv"
 n_mods = 3
 n_epochs = 2
 train_bs = 64
 n_classes = 2 #TODO still hardcoded for 2 only 
-unfreeze_epoch = 0
+unfreeze_epoch = 1
 weighted = True 
+zip_path = "/projects/p_scads_pathology/MultiStain/tiles.zip" # None
 ###
 
-filepath= "results"+expname
+
+filepath= "./results"+expname
 try:
   os.mkdir(filepath)
 except FileExistsError:
@@ -38,9 +41,9 @@ except FileExistsError:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Device: {device.type}")
 
-train_DS = MultiModalLoader(table_path, "TRAIN",n_mods=n_mods)
-test_DS = MultiModalLoader(table_path, "TEST",n_mods=n_mods)
-valid_DS = MultiModalLoader(table_path, "VALIDATION",n_mods=n_mods)
+train_DS = MultiModalLoader(table_path, "TRAIN",n_mods=n_mods,zip_path=zip_path)
+test_DS = MultiModalLoader(table_path, "TEST",n_mods=n_mods,zip_path=zip_path)
+valid_DS = MultiModalLoader(table_path, "VALIDATION",n_mods=n_mods,zip_path=zip_path)
 
 train_loader = DataLoader(train_DS, batch_size=train_bs, shuffle=True)
 valid_loader = DataLoader(valid_DS, batch_size=32, shuffle=False)
@@ -93,3 +96,5 @@ results_df = pd.DataFrame(results,columns=["cls1_label","cls2_label","cls1_label
         
 
 f = results_df.to_csv((filepath+"/result_table.csv"),index=False)
+
+print(f"Total time took{time.time-start}s")
