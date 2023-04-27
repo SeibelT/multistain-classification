@@ -15,7 +15,7 @@ from eval.evaluate import evaluation
 
 from torch.utils.tensorboard import SummaryWriter
 start = time.time()
-#Variables 
+###Variables 
 expname = "/ex1"
 table_path = "./data/datatable.csv"
 n_mods = 3
@@ -24,10 +24,12 @@ train_bs = 64
 n_classes = 2 #TODO still hardcoded for 2 only 
 unfreeze_epoch = 1
 weighted = True 
-zip_path = "/projects/p_scads_pathology/MultiStain/tiles.zip" # None
+zip_path = "/projects/p_scads_pathology/MultiStain/tiles.zip" # if data not in zip file  zip_path = None
 ###
 
 
+
+# create folder to store results
 filepath= "./results"+expname
 try:
   os.mkdir(filepath)
@@ -56,16 +58,16 @@ writer = SummaryWriter((filepath+"/tensorboard"))
 model = MultistainModel(n_classes = n_classes)
 model.to(device)
 
-#model = torch.compile(premodel)  # TODO not working yet 
+#model = torch.compile(premodel)  # TODO needs torch 2.0 and GPU 
 
 if weighted:
   criterion = nn.CrossEntropyLoss(weight=train_DS.__getweights__())
 else:
   criterion = nn.CrossEntropyLoss()  
 
-optimizer = optim.Adam(model.parameters(), lr=0.001)  # TODO optimal optimizer for this task?
-scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9)  # TODO optimal scheduler? 
-auroc = AUROC(task="multilabel", num_labels=2)  # TODO do for categorical
+optimizer = optim.Adam(model.parameters(), lr=0.001)  # TODO optimal lr for this task?
+scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma = 0.9) 
+auroc = AUROC(task="multilabel", num_labels=n_classes)  # TODO do for categorical
 activate = nn.Softmax(dim=1) 
 
 ##Network Graph
@@ -92,9 +94,9 @@ torch.save(state, filepath+"/model.pt")
 ##Evaluation
 results = evaluation(model,test_loader,device,criterion,auroc,activate)
 
-results_df = pd.DataFrame(results,columns=["cls1_label","cls2_label","cls1_label","cls2_pred"])  # TODO hardcoded for 2 classes only
+results_df = pd.DataFrame(results,columns=["cls1_label","cls2_label","cls1_pred","cls2_pred"])  # TODO hardcoded for 2 classes only
         
 
 f = results_df.to_csv((filepath+"/result_table.csv"),index=False)
 
-print(f"Total time took{time.time-start}s")
+print(f"Total time: {time.time-start}s")
